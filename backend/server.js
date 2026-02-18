@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Ankara Study Map Backend Running 🚀");
+  res.send("Ankara Study Map Backend Running");
 });
 
 app.listen(PORT, () => {
