@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../buildMultiTargeting/AnkaraStudyMap.props" />
+</Project>
