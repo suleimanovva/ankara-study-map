@@ -13,10 +13,6 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ message: "Invalid token format" });
   }
 
-  // Debug logs (safe to keep temporarily)
-  console.log("Incoming token:", token);
-  console.log("JWT Secret:", process.env.JWT_SECRET);
-
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
