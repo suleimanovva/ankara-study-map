@@ -1,12 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const venueController = require("../controllers/venueController");
+const authenticateToken = require("../middleware/authMiddleware");
 
 /**
  * @swagger
  * /api/venues/district/{districtId}:
  *   get:
- *     summary: Get venues by district ID
+ *     summary: Get venues by district ID (Protected)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: districtId
@@ -17,8 +20,16 @@ const venueController = require("../controllers/venueController");
  *     responses:
  *       200:
  *         description: List of venues
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  */
 
-router.get("/district/:districtId", venueController.getByDistrict);
+router.get(
+  "/district/:districtId",
+  authenticateToken,
+  venueController.getByDistrict
+);
 
 module.exports = router;

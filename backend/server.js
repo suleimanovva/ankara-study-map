@@ -4,8 +4,8 @@ require("dotenv").config();
 
 const pool = require("./config/db");
 const venueRoutes = require("./routes/venueRoutes");
+const authRoutes = require("./routes/authRoutes");
 
-// 🔹 Swagger (manual spec, no swagger-jsdoc)
 const swaggerUi = require("swagger-ui-express");
 
 const app = express();
@@ -26,8 +26,9 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/api/venues", venueRoutes);
+app.use("/api/auth", authRoutes);
 
-// 🔹 Manual Swagger document
+// 🔐 Swagger Document with JWT Security
 const swaggerDocument = {
   openapi: "3.0.0",
   info: {
@@ -39,24 +40,81 @@ const swaggerDocument = {
       url: "http://localhost:5000",
     },
   ],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+    },
+  },
   paths: {
     "/api/venues/district/{districtId}": {
       get: {
-        summary: "Get venues by district ID",
+        summary: "Get venues by district ID (Protected)",
+        security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: "districtId",
             in: "path",
             required: true,
-            schema: {
-              type: "integer",
-            },
+            schema: { type: "integer" },
           },
         ],
         responses: {
-          200: {
-            description: "List of venues",
+          200: { description: "List of venues" },
+          401: { description: "Unauthorized" },
+          403: { description: "Forbidden" },
+        },
+      },
+    },
+
+    "/api/auth/register": {
+      post: {
+        summary: "Register a new user",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  username: { type: "string" },
+                  email: { type: "string" },
+                  password: { type: "string" },
+                },
+                required: ["username", "email", "password"],
+              },
+            },
           },
+        },
+        responses: {
+          201: { description: "User registered successfully" },
+        },
+      },
+    },
+
+    "/api/auth/login": {
+      post: {
+        summary: "Login user and receive JWT token",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  email: { type: "string" },
+                  password: { type: "string" },
+                },
+                required: ["email", "password"],
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "JWT token returned" },
         },
       },
     },
