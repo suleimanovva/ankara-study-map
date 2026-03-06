@@ -38,7 +38,27 @@ async function getVenueById(req, res) {
 
 }
 
+async function searchVenues(req, res) {
+  try {
+
+    const name = req.query.name;
+
+    if (!name) {
+      return res.status(400).json({ message: "Search term required" });
+    }
+
+    const venues = await venueRepository.searchVenuesByName(name);
+
+    res.json(venues);
+
+  } catch (error) {
+    console.error("Search venues error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
 module.exports = {
   getByDistrict,
-  getVenueById
+  getVenueById,
+  searchVenues
 };

@@ -49,7 +49,25 @@ async function getVenueById(id) {
   };
 }
 
+async function searchVenuesByName(name) {
+
+  const query = `
+    SELECT id, name, description, image_url,
+           wifi_rating, quiet_rating,
+           latitude, longitude
+    FROM spots
+    WHERE name ILIKE $1
+      AND is_deleted = FALSE
+      AND is_approved = TRUE
+  `;
+
+  const result = await pool.query(query, [`%${name}%`]);
+
+  return result.rows;
+}
+
 module.exports = {
   getVenuesByDistrictId,
-  getVenueById
+  getVenueById,
+  searchVenuesByName
 };
