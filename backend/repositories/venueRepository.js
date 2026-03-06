@@ -20,6 +20,36 @@ async function getVenuesByDistrictId(districtId) {
   return result.rows;
 }
 
+async function getVenueById(id) {
+
+  const venueQuery = `
+    SELECT id, name, description, image_url,
+           wifi_rating, quiet_rating,
+           latitude, longitude
+    FROM spots
+    WHERE id = $1
+      AND is_deleted = FALSE
+      AND is_approved = TRUE
+  `;
+
+  const reviewQuery = `
+    SELECT r.rating, r.comment, u.username
+    FROM reviews r
+    JOIN users u ON r.user_id = u.id
+    WHERE r.spot_id = $1
+      AND r.is_deleted = FALSE
+  `;
+
+  const venue = await pool.query(venueQuery, [id]);
+  const reviews = await pool.query(reviewQuery, [id]);
+
+  return {
+    venue: venue.rows[0],
+    reviews: reviews.rows
+  };
+}
+
 module.exports = {
-  getVenuesByDistrictId
+  getVenuesByDistrictId,
+  getVenueById
 };
