@@ -5,6 +5,24 @@ const authenticateToken = require("../middleware/authMiddleware");
 
 /**
  * @swagger
+ * /api/venues/search:
+ *   get:
+ *     summary: Search venues by name
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Search term for venue name
+ *     responses:
+ *       200:
+ *         description: List of matching venues
+ */
+router.get("/search", venueController.searchVenues);
+
+/**
+ * @swagger
  * /api/venues/district/{districtId}:
  *   get:
  *     summary: Get venues by district ID (Protected)
@@ -25,7 +43,6 @@ const authenticateToken = require("../middleware/authMiddleware");
  *       403:
  *         description: Forbidden
  */
-
 router.get(
   "/district/:districtId",
   authenticateToken,
