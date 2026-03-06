@@ -5,6 +5,7 @@ require("dotenv").config();
 const pool = require("./config/db");
 const venueRoutes = require("./routes/venueRoutes");
 const authRoutes = require("./routes/authRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 
 const swaggerUi = require("swagger-ui-express");
 
@@ -24,11 +25,12 @@ app.get("/", (req, res) => {
   res.send("Ankara Study Map Backend Running 🚀");
 });
 
-// Routes
+// API Routes
 app.use("/api/venues", venueRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/reviews", reviewRoutes);
 
-// 🔐 Swagger Document with JWT Security
+// Swagger API Documentation
 const swaggerDocument = {
   openapi: "3.0.0",
   info: {
@@ -50,6 +52,7 @@ const swaggerDocument = {
     },
   },
   paths: {
+
     "/api/venues/district/{districtId}": {
       get: {
         summary: "Get venues by district ID (Protected)",
@@ -68,6 +71,51 @@ const swaggerDocument = {
           403: { description: "Forbidden" },
         },
       },
+    },
+
+    "/api/venues/{id}": {
+      get: {
+        summary: "Get venue details and reviews",
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+          },
+        ],
+        responses: {
+          200: { description: "Venue details with reviews" },
+          404: { description: "Venue not found" },
+        },
+      },
+    },
+
+    "/api/reviews": {
+      post: {
+        summary: "Create a review (Protected)",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  spot_id: { type: "integer" },
+                  rating: { type: "integer" },
+                  comment: { type: "string" }
+                },
+                required: ["spot_id", "rating"]
+              }
+            }
+          }
+        },
+        responses: {
+          201: { description: "Review created successfully" },
+          401: { description: "Unauthorized" }
+        }
+      }
     },
 
     "/api/auth/register": {
@@ -118,6 +166,31 @@ const swaggerDocument = {
         },
       },
     },
+
+    "/api/auth/google": {
+      post: {
+        summary: "Login with Google OAuth",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  token: { type: "string" }
+                },
+                required: ["token"]
+              }
+            }
+          }
+        },
+        responses: {
+          200: { description: "JWT token returned" },
+          401: { description: "Google authentication failed" }
+        }
+      }
+    }
+
   },
 };
 

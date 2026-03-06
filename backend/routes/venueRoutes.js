@@ -32,4 +32,10 @@ router.get(
   venueController.getByDistrict
 );
 
+/*
+  GET VENUE DETAILS
+  GET /api/venues/:id
+*/
+router.get("/:id", venueController.getVenueById);
+
 module.exports = router;
