@@ -25,6 +25,57 @@ app.get("/", (req, res) => {
   res.send("Ankara Study Map Backend Running 🚀");
 });
 
+// ==========================================
+// 🔥 ХАК №1: ДЛЯ ГЛАВНОЙ СТРАНИЦЫ (Все 19 карточек) 🔥
+// ==========================================
+app.get("/api/venues", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM spots WHERE is_deleted = false");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error while getting the data", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ==========================================
+// 🔥 ХАК №2: ДЛЯ СТРАНИЦЫ ОДНОГО КАФЕ (Теперь с отзывами!) 🔥
+// ==========================================
+app.get("/api/venues/:id", async (req, res, next) => {
+  const { id } = req.params;
+  
+  // Пропускаем, если вместо ID пришло слово (чтобы не сломать другие маршруты Роа)
+  if (isNaN(id)) return next();
+
+  try {
+    // 1. Берем само кафе
+    const spotResult = await pool.query("SELECT * FROM spots WHERE id = $1", [id]);
+    
+    if (spotResult.rows.length === 0) {
+      return res.status(404).json({ error: "Venue not found" });
+    }
+    
+    // 2. Берем НАСТОЯЩИЕ отзывы для этого кафе и имя пользователя
+    const reviewsResult = await pool.query(
+      `SELECT r.id, r.rating, r.comment, u.username 
+       FROM reviews r 
+       JOIN users u ON r.user_id = u.id 
+       WHERE r.spot_id = $1 AND r.is_deleted = false 
+       ORDER BY r.created_at DESC`, 
+      [id]
+    );
+    
+    // 3. Склеиваем кафе и отзывы
+    const venueData = spotResult.rows[0];
+    venueData.reviews = reviewsResult.rows; 
+
+    res.json(venueData); // Отправляем всё на фронтенд!
+  } catch (err) {
+    console.error("Error while getting the venue:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // API Routes
 app.use("/api/venues", venueRoutes);
 app.use("/api/auth", authRoutes);
@@ -52,7 +103,6 @@ const swaggerDocument = {
     },
   },
   paths: {
-
     "/api/venues/district/{districtId}": {
       get: {
         summary: "Get venues by district ID (Protected)",
@@ -72,7 +122,6 @@ const swaggerDocument = {
         },
       },
     },
-
     "/api/venues/{id}": {
       get: {
         summary: "Get venue details and reviews",
@@ -90,7 +139,6 @@ const swaggerDocument = {
         },
       },
     },
-
     "/api/reviews": {
       post: {
         summary: "Create a review (Protected)",
@@ -117,7 +165,6 @@ const swaggerDocument = {
         }
       }
     },
-
     "/api/auth/register": {
       post: {
         summary: "Register a new user",
@@ -142,7 +189,6 @@ const swaggerDocument = {
         },
       },
     },
-
     "/api/auth/login": {
       post: {
         summary: "Login user and receive JWT token",
@@ -166,7 +212,6 @@ const swaggerDocument = {
         },
       },
     },
-
     "/api/auth/google": {
       post: {
         summary: "Login with Google OAuth",
@@ -190,7 +235,6 @@ const swaggerDocument = {
         }
       }
     }
-
   },
 };
 

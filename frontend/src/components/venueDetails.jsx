@@ -9,10 +9,17 @@ export default function VenueDetails() {
   
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [reviewText, setReviewText] = useState("");
-  const [rating, setRating] = useState(5); // Новое состояние: оценка пользователя (по умолчанию 5)
-  const [isSubmitting, setIsSubmitting] = useState(false); // Состояние загрузки во время отправки
+  const [rating, setRating] = useState(5); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    // 1. MEMORY CHECK: If we already have a token, we are authorized!
+    const savedToken = localStorage.getItem('app_token');
+    if (savedToken) {
+      setIsLoggedIn(true);
+    }
+
+    // Fetch venue data
     fetch(`http://localhost:5000/api/venues/${id}`)
       .then(res => res.json())
       .then(data => {
@@ -26,27 +33,49 @@ export default function VenueDetails() {
       });
   }, [id]);
 
-  const handleGoogleSuccess = (credentialResponse) => {
-    console.log("Login Success!", credentialResponse);
-    setIsLoggedIn(true); 
-    // В будущем тут мы сохраним токен Google
-    localStorage.setItem('temp_token', credentialResponse.credential); 
+  // 🔥 LOGIN AND TOKEN EXCHANGE FUNCTION 🔥
+  const handleGoogleSuccess = async (credentialResponse) => {
+    console.log("Received token from Google, sending to backend...");
+    
+    try {
+      // Send Google token to your backend
+      const res = await fetch('http://localhost:5000/api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ token: credentialResponse.credential })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Backend recognized us and issued ITS token! Saving it.
+        localStorage.setItem('app_token', data.token); // Save permanently (until logout)
+        setIsLoggedIn(true); // Remove overlay
+        console.log("Successful backend authorization!");
+      } else {
+        alert("Server authorization error: " + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error("Backend connection error:", err);
+    }
   };
 
-  // 🔥 ФУНКЦИЯ ОТПРАВКИ ОТЗЫВА В БАЗУ 🔥
+  // 🔥 SUBMIT REVIEW TO DATABASE FUNCTION 🔥
   const handleSubmitReview = async () => {
-    if (!reviewText.trim()) return; // Не отправляем пустой текст
+    if (!reviewText.trim()) return; 
     setIsSubmitting(true);
 
     try {
-      // Бэкенд просит токен авторизации (Bearer Token)
-      const token = localStorage.getItem('temp_token') || 'dummy_token';
+      // Get OUR token from memory
+      const token = localStorage.getItem('app_token');
 
       const response = await fetch('http://localhost:5000/api/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
+          'Authorization': `Bearer ${token}` // Send token to backend
         },
         body: JSON.stringify({
           spot_id: parseInt(id),
@@ -57,15 +86,15 @@ export default function VenueDetails() {
 
       if (response.ok) {
         alert('Review added successfully!');
-        setReviewText(""); // Очищаем поле
-        window.location.reload(); // Перезагружаем страницу, чтобы увидеть новый отзыв!
+        setReviewText(""); 
+        window.location.reload(); // Reload to see the review
       } else {
         const errorData = await response.json();
         alert(`Failed to add review: ${errorData.error || 'Unauthorized'}`);
       }
     } catch (err) {
       console.error('Submit error:', err);
-      alert('Error connecting to the server.');
+      alert('Server connection error.');
     } finally {
       setIsSubmitting(false);
     }
@@ -95,7 +124,7 @@ export default function VenueDetails() {
         <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-100 mb-8">
           <h1 className="text-4xl font-serif font-bold text-gray-900 mb-2">{venue.name}</h1>
           <p className="text-gray-500 text-lg mb-6">📍 {venue.address}</p>
-          <p className="text-gray-700 text-lg leading-relaxed mb-8">{venue.description || 'Description not available in the database.'}</p>
+          <p className="text-gray-700 text-lg leading-relaxed mb-8">{venue.description || 'Description not available.'}</p>
           
           {venue.google_maps_link && (
             <a href={venue.google_maps_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-8 py-4 rounded-full font-bold hover:bg-emerald-600 hover:text-white transition-all">
@@ -158,7 +187,6 @@ export default function VenueDetails() {
             
             <div className="border-t border-gray-100 pt-8">
                 <h3 className="text-2xl font-serif font-bold mb-2">Leave a Review</h3>
-                <p className="text-gray-500 mb-6 text-sm">Share your thoughts on the internet speed and atmosphere.</p>
                 
                 <div className="relative">
                   {!isLoggedIn && (
@@ -173,7 +201,6 @@ export default function VenueDetails() {
                     </div>
                   )}
                   
-                  {/* ВЫБОР РЕЙТИНГА ЗВЕЗДОЧКАМИ */}
                   <div className={`mb-4 flex items-center gap-2 ${!isLoggedIn && 'opacity-50'}`}>
                     <span className="font-bold text-gray-700">Rating:</span>
                     <div className="flex gap-1">
@@ -200,7 +227,7 @@ export default function VenueDetails() {
                   />
                   <button 
                     disabled={!isLoggedIn || isSubmitting} 
-                    onClick={handleSubmitReview} // ПРИВЯЗАЛИ НАШУ НОВУЮ ФУНКЦИЮ
+                    onClick={handleSubmitReview}
                     className={`mt-4 px-8 py-3 rounded-xl font-bold w-full md:w-auto transition-all ${isLoggedIn ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md' : 'bg-gray-300 text-gray-500'}`}
                   >
                     {isSubmitting ? 'Submitting...' : 'Submit Review'}
