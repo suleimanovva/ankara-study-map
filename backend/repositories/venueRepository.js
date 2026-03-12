@@ -1,20 +1,18 @@
 const pool = require("../config/db");
 
 async function getVenuesByDistrictId(districtId) {
-  const query = `
-    SELECT 
-      id,
-      name,
-      latitude,
-      longitude,
-      wifi_rating,
-      quiet_rating,
-      image_url
-    FROM spots
-    WHERE district_id = $1
-      AND is_approved = TRUE
-      AND is_deleted = FALSE
-  `;
+  const reviewQuery = `
+  SELECT 
+    r.id,
+    r.user_id,
+    r.rating,
+    r.comment,
+    u.username
+  FROM reviews r
+  JOIN users u ON r.user_id = u.id
+  WHERE r.spot_id = $1
+    AND r.is_deleted = FALSE
+`;
 
   const result = await pool.query(query, [districtId]);
   return result.rows;
