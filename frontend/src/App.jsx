@@ -126,7 +126,7 @@ const HomePage = ({ spots, search, setSearch, handleDistrictClick, selectedDistr
             {districtVenues.length > 0 ? (
                districtVenues.map(spot => <VenueCard key={spot.id} spot={spot} />)
             ) : (
-               <p className="text-gray-500 text-xl">Здесь пока нет добавленных мест.</p>
+               <p className="text-gray-500 text-xl">There is no added places yet.</p>
             )}
           </div>
         )}
