@@ -1,28 +1,62 @@
 import React, { useState } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
+import { Link } from 'react-router-dom';
 
-export default function ReviewSection({ venueId, reviews = [], isLoggedIn, currentUserId, onGoogleSuccess }) {
+export default function ReviewSection({ venueId, reviews, isLoggedIn, currentUserId }) {
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(5); 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🔥 SUBMIT REVIEW FUNCTION 🔥
+  // 🔥 НОВАЯ ФУНКЦИЯ: УДАЛЕНИЕ ОТЗЫВА 🔥
+  const handleDeleteReview = async (reviewId) => {
+    // Спрашиваем подтверждение перед удалением (чтобы случайно не удалить)
+    const confirmDelete = window.confirm("Are you sure you want to delete this review?");
+    if (!confirmDelete) return;
+
+    try {
+      const token = localStorage.getItem('app_token');
+
+      const response = await fetch(`http://localhost:5000/api/reviews/${reviewId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}` 
+        }
+      });
+
+      if (response.ok) {
+        alert('Review deleted successfully!');
+        window.location.reload(); // Перезагружаем страницу, чтобы отзыв исчез
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to delete review: ${errorData.error || 'Unauthorized'}`);
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Server connection error.');
+    }
+  };
+
   const handleSubmitReview = async () => {
     if (!reviewText.trim()) return; 
     setIsSubmitting(true);
 
     try {
       const token = localStorage.getItem('app_token');
+
       const response = await fetch('http://localhost:5000/api/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}` 
         },
-        body: JSON.stringify({ spot_id: parseInt(venueId), rating, comment: reviewText })
+        body: JSON.stringify({
+          spot_id: parseInt(venueId),
+          rating: rating,
+          comment: reviewText
+        })
       });
 
       if (response.ok) {
+        alert('Review added successfully!');
         setReviewText(""); 
         window.location.reload(); 
       } else {
@@ -37,59 +71,32 @@ export default function ReviewSection({ venueId, reviews = [], isLoggedIn, curre
     }
   };
 
-  // 🔥 DELETE REVIEW FUNCTION 🔥
-  const handleDeleteReview = async (reviewId) => {
-    if (!window.confirm("Are you sure you want to delete your review?")) return;
-
-    try {
-      const token = localStorage.getItem('app_token');
-      const response = await fetch(`http://localhost:5000/api/reviews/${reviewId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        window.location.reload(); 
-      } else {
-        const errorData = await response.json();
-        alert(`Failed to delete review: ${errorData.error || 'Unauthorized'}`);
-      }
-    } catch (err) {
-      console.error('Delete error:', err);
-      alert('Server connection error.');
-    }
-  };
-
   return (
     <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-100">
         <h2 className="text-3xl font-serif font-bold mb-6 text-gray-900">Student Reviews</h2>
         
-        {/* REVIEWS LIST */}
         <div className="space-y-4 mb-8">
-          {reviews.length > 0 ? (
+          {reviews && reviews.length > 0 ? (
             reviews.map(review => (
-              <div key={review.id} className="p-6 bg-[#FCFBF7] rounded-3xl border border-gray-100">
+              // Добавили relative, чтобы абсолютно позиционировать кнопку удаления
+              <div key={review.id} className="p-6 bg-[#FCFBF7] rounded-3xl border border-gray-100 relative">
                 <div className="flex justify-between items-center mb-3">
-                  
-                  <div className="flex items-center gap-3">
-                    <span className="font-bold text-gray-900">{review.username}</span>
-                    {currentUserId === review.user_id && (
-                      <button 
-                        onClick={() => handleDeleteReview(review.id)}
-                        className="text-red-400 hover:text-red-600 text-sm font-bold transition-colors"
-                      >
-                        🗑️ Delete
-                      </button>
-                    )}
-                  </div>
-
+                  <span className="font-bold text-gray-900">{review.username}</span>
                   <span className="text-orange-400 text-lg font-bold">
                     {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)} {review.rating}.0
                   </span>
                 </div>
-                <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                <p className="text-gray-700 leading-relaxed mb-4">{review.comment}</p>
+
+                {/* 🔥 КНОПКА УДАЛЕНИЯ (Показываем только владельцу отзыва) 🔥 */}
+                {currentUserId && currentUserId === review.user_id && (
+                  <button 
+                    onClick={() => handleDeleteReview(review.id)}
+                    className="absolute bottom-6 right-6 text-sm text-red-400 hover:text-red-600 font-bold transition-colors"
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             ))
           ) : (
@@ -99,20 +106,19 @@ export default function ReviewSection({ venueId, reviews = [], isLoggedIn, curre
           )}
         </div>
         
-        {/* LEAVE A REVIEW FORM */}
         <div className="border-t border-gray-100 pt-8">
             <h3 className="text-2xl font-serif font-bold mb-2">Leave a Review</h3>
             
-            <div className="relative">
+            <div className="relative mt-6">
               {!isLoggedIn && (
                 <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-2xl border border-gray-200">
                   <p className="text-gray-900 font-bold mb-4">Sign in to leave a review</p>
-                  <GoogleLogin 
-                    onSuccess={onGoogleSuccess} 
-                    onError={() => console.log("Login Failed")}
-                    theme="filled_blue"
-                    shape="pill"
-                  />
+                  <Link 
+                    to="/login"
+                    className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-700 transition-all shadow-md"
+                  >
+                    Log In
+                  </Link>
                 </div>
               )}
               

@@ -39,27 +39,6 @@ export default function VenueDetails() {
       });
   }, [id]);
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const res = await fetch('http://localhost:5000/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: credentialResponse.credential })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        localStorage.setItem('app_token', data.token);
-        setIsLoggedIn(true);
-        setCurrentUserId(decodeToken(data.token));
-      } else {
-        alert("Server authorization error: " + (data.error || 'Unknown error'));
-      }
-    } catch (err) {
-      console.error("Backend connection error:", err);
-    }
-  };
 
   if (loading) return <div className="pt-40 text-center text-2xl font-serif text-gray-500">Loading details...</div>;
   if (!venue) return <div className="pt-40 text-center text-2xl font-serif text-red-500">Venue not found :(</div>;
@@ -128,7 +107,6 @@ export default function VenueDetails() {
           reviews={venue.reviews} 
           isLoggedIn={isLoggedIn} 
           currentUserId={currentUserId}
-          onGoogleSuccess={handleGoogleSuccess}
         />
 
       </div>
