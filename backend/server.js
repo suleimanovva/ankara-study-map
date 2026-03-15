@@ -55,15 +55,14 @@ app.get("/api/venues/:id", async (req, res, next) => {
       return res.status(404).json({ error: "Venue not found" });
     }
     
-    // 2. Берем НАСТОЯЩИЕ отзывы для этого кафе и имя пользователя
-    const reviewsResult = await pool.query(
-      `SELECT r.id, r.rating, r.comment, u.username 
-       FROM reviews r 
-       JOIN users u ON r.user_id = u.id 
-       WHERE r.spot_id = $1 AND r.is_deleted = false 
-       ORDER BY r.created_at DESC`, 
-      [id]
-    );
+   const reviewsResult = await pool.query(
+  `SELECT r.id, r.user_id, r.rating, r.comment, u.username 
+   FROM reviews r 
+   JOIN users u ON r.user_id = u.id 
+   WHERE r.spot_id = $1 AND r.is_deleted = false 
+   ORDER BY r.created_at DESC`,
+  [id]
+);
     
     // 3. Склеиваем кафе и отзывы
     const venueData = spotResult.rows[0];
@@ -165,6 +164,35 @@ const swaggerDocument = {
         }
       }
     },
+    "/api/reviews/{id}": {
+  delete: {
+    summary: "Delete a review (Protected)",
+    security: [{ bearerAuth: [] }],
+    parameters: [
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        description: "Review ID",
+        schema: { type: "integer" }
+      }
+    ],
+    responses: {
+      200: {
+        description: "Review deleted successfully"
+      },
+      403: {
+        description: "Not allowed to delete this review"
+      },
+      401: {
+        description: "Unauthorized"
+      },
+      500: {
+        description: "Server error"
+      }
+    }
+  }
+},
     "/api/auth/register": {
       post: {
         summary: "Register a new user",
