@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
 import VenueDetails from './components/venueDetails'; 
+import LoginPage from './components/LoginPage';
 
 const districtsData = [
   { id: 1, name: 'Çankaya', count: 5, img: 'https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?q=80&w=2070' },
@@ -48,24 +48,32 @@ const VenueCard = ({ spot }) => {
   );
 };
 
-// ВНИМАНИЕ: Навбар с кнопкой Google теперь живет ТОЛЬКО внутри HomePage
-const HomePage = ({ spots, search, setSearch, handleDistrictClick, selectedDistrict, setSelectedDistrict, districtVenues, isLoading }) => (
+const HomePage = ({ spots, search, setSearch, handleDistrictClick, selectedDistrict, setSelectedDistrict, districtVenues, isLoading, isLoggedIn, handleLogout }) => (
   <>
-    {/* ПОМЕНЯЛИ fixed НА absolute */}
     <nav className={`absolute top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-6 transition-all ${selectedDistrict ? 'bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100' : 'bg-transparent'}`}>
       <Link to="/" onClick={() => setSelectedDistrict(null)} className="flex items-center gap-2 cursor-pointer">
         <div className="text-emerald-500 text-3xl">📍</div>
         <span className={`font-serif text-2xl font-bold tracking-tight ${selectedDistrict ? 'text-gray-900' : 'text-white'}`}>Ankara Study Map</span>
       </Link>
       <div className="flex items-center gap-6">
-        <div className="min-w-[150px]">
-          <GoogleLogin 
-            onSuccess={res => console.log("Success", res)} 
-            onError={() => console.log("Failed")}
-            theme="filled_blue"
-            shape="pill"
-          />
-        </div>
+        
+        {/* 🔥 ВОТ ОНА: НАША ЧИСТАЯ КНОПКА LOG IN 🔥 */}
+        {isLoggedIn ? (
+          <button 
+            onClick={handleLogout} 
+            className={`font-bold px-6 py-2 rounded-full border transition-all ${selectedDistrict ? 'border-red-200 text-red-500 hover:bg-red-50' : 'border-white/30 text-white hover:bg-white/10'}`}
+          >
+            Log Out
+          </button>
+        ) : (
+          <Link 
+            to="/login"
+            className={`font-bold px-8 py-2.5 rounded-full transition-all shadow-md ${selectedDistrict ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-white text-gray-900 hover:bg-gray-100'}`}
+          >
+            Log In
+          </Link>
+        )}
+
         {selectedDistrict && (
           <button onClick={() => setSelectedDistrict(null)} className="text-emerald-600 font-bold hover:underline">← Back Home</button>
         )}
@@ -141,8 +149,15 @@ export default function App() {
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [districtVenues, setDistrictVenues] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    // Проверяем, авторизован ли пользователь при загрузке
+    const token = localStorage.getItem('app_token');
+    if (token) {
+      setIsLoggedIn(true);
+    }
+
     fetch('http://localhost:5000/api/venues') 
       .then(res => res.json())
       .then(data => {
@@ -161,6 +176,11 @@ export default function App() {
     }, 400);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('app_token');
+    setIsLoggedIn(false);
+  };
+
   return (
     <Router>
       <div className="min-h-screen bg-[#FCFBF7] font-sans selection:bg-emerald-100 relative">
@@ -174,9 +194,12 @@ export default function App() {
               setSelectedDistrict={setSelectedDistrict}
               districtVenues={districtVenues}
               isLoading={isLoading}
+              isLoggedIn={isLoggedIn}
+              handleLogout={handleLogout}
             />
           } />
           <Route path="/venue/:id" element={<VenueDetails />} /> 
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
 
         <footer className="py-20 flex flex-col items-center justify-center border-t border-gray-100 bg-white mt-auto">
