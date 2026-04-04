@@ -43,17 +43,7 @@ router.get("/search", venueController.searchVenues);
  * 403:
  * description: Forbidden
  */
-router.get(
-  "/district/:districtId",
-  authenticateToken,
-  venueController.getByDistrict
-);
-
-/*
-  GET VENUE DETAILS
-  GET /api/venues/:id
-*/
-router.get("/:id", venueController.getVenueById);
+router.get("/district/:districtId", authenticateToken, venueController.getByDistrict);
 
 /**
  * @swagger
@@ -93,5 +83,73 @@ router.get("/:id", venueController.getVenueById);
  * description: Server error
  */
 router.post("/", authenticateToken, venueController.suggestVenue);
+
+
+/**
+ * @swagger
+ * /api/venues/admin/pending:
+ * get:
+ * summary: Get all pending venues (Admin)
+ * description: Returns a list of all venues where is_approved is false.
+ * tags: 
+ * - Admin
+ * security:
+ * - bearerAuth: []
+ * responses:
+ * 200:
+ * description: List of pending venues
+ */
+router.get("/admin/pending", authenticateToken, venueController.getPendingVenues);
+
+/**
+ * @swagger
+ * /api/venues/admin/{id}/approve:
+ * put:
+ * summary: Approve a pending venue (Admin)
+ * tags: 
+ * - Admin
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: integer
+ * responses:
+ * 200:
+ * description: Venue approved
+ */
+router.put("/admin/:id/approve", authenticateToken, venueController.approveVenue);
+
+/**
+ * @swagger
+ * /api/venues/admin/{id}/reject:
+ * delete:
+ * summary: Reject/Delete a pending venue (Admin)
+ * tags: 
+ * - Admin
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: integer
+ * responses:
+ * 200:
+ * description: Venue rejected
+ */
+router.delete("/admin/:id/reject", authenticateToken, venueController.rejectVenue);
+
+
+/**
+ * @swagger
+ * /api/venues/{id}:
+ * get:
+ * summary: Get venue details
+ */
+router.get("/:id", venueController.getVenueById);
 
 module.exports = router;
