@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import VenueDetails from './components/venueDetails'; 
 import LoginPage from './components/LoginPage';
 
+
 const districtsData = [
   { id: 1, name: 'Çankaya', count: 5, img: 'https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?q=80&w=2070' },
   { id: 2, name: 'Yenimahalle', count: 4, img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1000' },
