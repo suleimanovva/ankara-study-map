@@ -6,16 +6,19 @@ export default function AdminPage() {
   const [pendingSpots, setPendingSpots] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Загружаем места, ожидающие проверки
+  // ==============================
+  // LOAD PENDING SPOTS
+  // ==============================
   useEffect(() => {
-    const token = localStorage.getItem('app_token');
+    const token = localStorage.getItem('token'); // ✅ FIXED
+
     if (!token) {
       alert("Access denied. Admin only.");
       navigate('/');
       return;
     }
 
-    fetch('http://localhost:5000/api/venues/pending', {
+    fetch('http://localhost:5000/api/venues/admin/pending', { // ✅ FIXED
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -35,17 +38,24 @@ export default function AdminPage() {
       });
   }, [navigate]);
 
-  // Функция ОДОБРИТЬ
+  // ==============================
+  // APPROVE
+  // ==============================
   const handleApprove = async (id) => {
     try {
-      const token = localStorage.getItem('app_token');
-      const res = await fetch(`http://localhost:5000/api/venues/${id}/approve`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const token = localStorage.getItem('token'); // ✅ FIXED
+
+      const res = await fetch(
+        `http://localhost:5000/api/venues/admin/${id}/approve`, // ✅ FIXED
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
 
       if (res.ok) {
-        // Убираем кафе из списка ожидающих на экране
         setPendingSpots(prev => prev.filter(spot => spot.id !== id));
         alert("Spot successfully approved and added to the map! ✅");
       } else {
@@ -56,17 +66,25 @@ export default function AdminPage() {
     }
   };
 
-  // Функция ОТКЛОНИТЬ (Удалить)
+  // ==============================
+  // REJECT
+  // ==============================
   const handleReject = async (id) => {
     const confirmReject = window.confirm("Are you sure you want to completely delete this spot?");
     if (!confirmReject) return;
 
     try {
-      const token = localStorage.getItem('app_token');
-      const res = await fetch(`http://localhost:5000/api/venues/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const token = localStorage.getItem('token'); // ✅ FIXED
+
+      const res = await fetch(
+        `http://localhost:5000/api/venues/admin/${id}/reject`, // ✅ FIXED
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
 
       if (res.ok) {
         setPendingSpots(prev => prev.filter(spot => spot.id !== id));
@@ -85,18 +103,26 @@ export default function AdminPage() {
         <Link to="/" className="text-emerald-600 font-bold hover:underline mb-8 inline-block">
           ← Back to Main Map
         </Link>
-        
+
         <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100">
-          <h1 className="text-4xl font-serif font-bold text-gray-900 mb-2">Admin Dashboard 🛡️</h1>
-          <p className="text-gray-500 mb-10">Review and approve suggested study spots before they go public.</p>
+          <h1 className="text-4xl font-serif font-bold text-gray-900 mb-2">
+            Admin Dashboard 🛡️
+          </h1>
+          <p className="text-gray-500 mb-10">
+            Review and approve suggested study spots before they go public.
+          </p>
 
           {isLoading ? (
-            <div className="text-center py-10 italic text-gray-500">Loading pending spots...</div>
+            <div className="text-center py-10 italic text-gray-500">
+              Loading pending spots...
+            </div>
           ) : pendingSpots.length === 0 ? (
             <div className="bg-gray-50 p-10 rounded-2xl text-center border border-gray-200">
               <span className="text-4xl mb-4 block">🎉</span>
               <p className="text-gray-600 font-bold text-lg">All caught up!</p>
-              <p className="text-gray-500">There are no pending spots to review right now.</p>
+              <p className="text-gray-500">
+                There are no pending spots to review right now.
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -113,7 +139,9 @@ export default function AdminPage() {
                   {pendingSpots.map(spot => (
                     <tr key={spot.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                       <td className="p-4 font-bold text-gray-900">{spot.name}</td>
-                      <td className="p-4 text-gray-500 text-sm max-w-xs truncate" title={spot.address}>{spot.address}</td>
+                      <td className="p-4 text-gray-500 text-sm max-w-xs truncate" title={spot.address}>
+                        {spot.address}
+                      </td>
                       <td className="p-4">
                         <div className="flex gap-2 text-xl">
                           {spot.outlet_availability && <span title="Has Outlets">🔌</span>}
@@ -121,13 +149,13 @@ export default function AdminPage() {
                         </div>
                       </td>
                       <td className="p-4 flex justify-center gap-3">
-                        <button 
+                        <button
                           onClick={() => handleApprove(spot.id)}
                           className="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-xl font-bold hover:bg-emerald-200 transition-colors"
                         >
                           Approve ✅
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleReject(spot.id)}
                           className="bg-red-100 text-red-600 px-4 py-2 rounded-xl font-bold hover:bg-red-200 transition-colors"
                         >
