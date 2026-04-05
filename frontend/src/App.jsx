@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import VenueDetails from './components/venueDetails'; 
 import LoginPage from './components/LoginPage';
-
+import SignUpPage from './components/SignUpPage';
+import SuggestSpot from './components/SuggestSpot';
+import AdminPage from './components/AdminPage';
 
 const districtsData = [
   { id: 1, name: 'Çankaya', count: 5, img: 'https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?q=80&w=2070' },
@@ -23,8 +25,8 @@ const VenueCard = ({ spot }) => {
         <div className="relative h-72 overflow-hidden">
           <img src={spot.image_url || '/placeholder.jpg'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={spot.name} />
           <div className="absolute bottom-4 left-5 flex gap-2">
-            {spot.outlet_availability && <div className="bg-white/90 p-2 rounded-xl shadow-sm text-lg">🔌</div>}
-            {spot.has_food && <div className="bg-white/90 p-2 rounded-xl shadow-sm text-lg">☕</div>}
+            {spot.outlet_availability && <div className="bg-white/90 p-2 rounded-xl shadow-sm text-lg" title="Has Outlets">🔌</div>}
+            {spot.has_food && <div className="bg-white/90 p-2 rounded-xl shadow-sm text-lg" title="Has Food/Coffee">☕</div>}
           </div>
         </div>
         <div className="p-8">
@@ -49,100 +51,153 @@ const VenueCard = ({ spot }) => {
   );
 };
 
-const HomePage = ({ spots, search, setSearch, handleDistrictClick, selectedDistrict, setSelectedDistrict, districtVenues, isLoading, isLoggedIn, handleLogout }) => (
-  <>
-    <nav className={`absolute top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-6 transition-all ${selectedDistrict ? 'bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100' : 'bg-transparent'}`}>
-      <Link to="/" onClick={() => setSelectedDistrict(null)} className="flex items-center gap-2 cursor-pointer">
-        <div className="text-emerald-500 text-3xl">📍</div>
-        <span className={`font-serif text-2xl font-bold tracking-tight ${selectedDistrict ? 'text-gray-900' : 'text-white'}`}>Ankara Study Map</span>
-      </Link>
-      <div className="flex items-center gap-6">
-        
-        {/* 🔥 ВОТ ОНА: НАША ЧИСТАЯ КНОПКА LOG IN 🔥 */}
-        {isLoggedIn ? (
-          <button 
-            onClick={handleLogout} 
-            className={`font-bold px-6 py-2 rounded-full border transition-all ${selectedDistrict ? 'border-red-200 text-red-500 hover:bg-red-50' : 'border-white/30 text-white hover:bg-white/10'}`}
-          >
-            Log Out
-          </button>
-        ) : (
-          <Link 
-            to="/login"
-            className={`font-bold px-8 py-2.5 rounded-full transition-all shadow-md ${selectedDistrict ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-white text-gray-900 hover:bg-gray-100'}`}
-          >
-            Log In
-          </Link>
-        )}
+const HomePage = ({ 
+  spots, search, setSearch, handleDistrictClick, selectedDistrict, setSelectedDistrict, 
+  districtVenues, isLoading, isLoggedIn, handleLogout, 
+  filterOutlets, setFilterOutlets, filterFood, setFilterFood 
+}) => {
 
-        {selectedDistrict && (
-          <button onClick={() => setSelectedDistrict(null)} className="text-emerald-600 font-bold hover:underline">← Back Home</button>
-        )}
-      </div>
-    </nav>
+  const filteredPopularSpots = spots.filter(spot => {
+    const matchSearch = spot.name.toLowerCase().includes(search.toLowerCase());
+    const matchOutlets = filterOutlets ? spot.outlet_availability === true : true;
+    const matchFood = filterFood ? spot.has_food === true : true;
+    return matchSearch && matchOutlets && matchFood;
+  });
 
-    {!selectedDistrict ? (
-      <>
-        <header className="relative h-[600px] flex items-center justify-center px-6 overflow-hidden text-center">
-          <div className="absolute inset-0 z-0">
-            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/40"></div>
-          </div>
-          <div className="relative z-10 w-full max-w-4xl text-white pt-10">
-            <h1 className="font-serif text-5xl md:text-7xl font-bold mb-6 tracking-tight">Find your perfect study spot in Ankara</h1>
-            <div className="relative max-w-2xl mx-auto">
-              <input 
-                type="text" 
-                placeholder="Search by name..." 
-                className="w-full px-10 py-6 rounded-[2.5rem] bg-white text-gray-800 text-lg shadow-2xl outline-none focus:ring-4 focus:ring-emerald-500/20"
-                onChange={(e) => setSearch(e.target.value)}
-              />
+  const filteredDistrictSpots = districtVenues.filter(spot => {
+    const matchOutlets = filterOutlets ? spot.outlet_availability === true : true;
+    const matchFood = filterFood ? spot.has_food === true : true;
+    return matchOutlets && matchFood;
+  });
+
+  return (
+    <>
+      <nav className={`absolute top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-6 transition-all ${selectedDistrict ? 'bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100' : 'bg-transparent'}`}>
+        <Link to="/" onClick={() => setSelectedDistrict(null)} className="flex items-center gap-2 cursor-pointer">
+          <div className="text-emerald-500 text-3xl">📍</div>
+          <span className={`font-serif text-2xl font-bold tracking-tight ${selectedDistrict ? 'text-gray-900' : 'text-white'}`}>Ankara Study Map</span>
+        </Link>
+        <div className="flex items-center gap-6">
+          {isLoggedIn ? (
+            <div className="flex items-center gap-4">
+              <Link to="/suggest" className={`font-bold px-6 py-2 rounded-full transition-all ${selectedDistrict ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-white/20 text-white hover:bg-white/30'}`}>
+                + Suggest a Spot
+              </Link>
+              <button onClick={handleLogout} className={`font-bold px-6 py-2 rounded-full border transition-all ${selectedDistrict ? 'border-red-200 text-red-500 hover:bg-red-50' : 'border-white/30 text-white hover:bg-white/10'}`}>
+                Log Out
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className={`font-bold px-8 py-2.5 rounded-full transition-all shadow-md ${selectedDistrict ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-white text-gray-900 hover:bg-gray-100'}`}>
+              Log In
+            </Link>
+          )}
+          {selectedDistrict && (
+            <button onClick={() => setSelectedDistrict(null)} className="text-emerald-600 font-bold hover:underline">← Back Home</button>
+          )}
+        </div>
+      </nav>
+
+      {!selectedDistrict ? (
+        <>
+          <header className="relative h-[600px] flex items-center justify-center px-6 overflow-hidden text-center">
+            <div className="absolute inset-0 z-0">
+              <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/40"></div>
+            </div>
+            <div className="relative z-10 w-full max-w-4xl text-white pt-10">
+              <h1 className="font-serif text-5xl md:text-7xl font-bold mb-6 tracking-tight">Find your perfect study spot in Ankara</h1>
+              <div className="relative max-w-2xl mx-auto">
+                <input 
+                  type="text" 
+                  placeholder="Search by name..." 
+                  className="w-full px-10 py-6 rounded-[2.5rem] bg-white text-gray-800 text-lg shadow-2xl outline-none focus:ring-4 focus:ring-emerald-500/20"
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            </div>
+          </header>
+
+          <main className="max-w-7xl mx-auto px-8 py-20">
+            {/* 🔥 ПРОФЕССИОНАЛЬНАЯ ПАНЕЛЬ ФИЛЬТРОВ 🔥 */}
+            <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+              <h2 className="font-serif text-4xl font-bold text-gray-900 italic text-left">Popular Study Spots</h2>
+              
+              <div className="flex gap-3">
+                <label className={`flex items-center gap-2 cursor-pointer px-5 py-2.5 rounded-full font-bold text-sm transition-all border ${filterOutlets ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                  {/* Чекбокс спрятан с помощью класса hidden */}
+                  <input type="checkbox" checked={filterOutlets} onChange={(e) => setFilterOutlets(e.target.checked)} className="hidden" />
+                  <span>🔌 Outlets</span>
+                </label>
+                
+                <label className={`flex items-center gap-2 cursor-pointer px-5 py-2.5 rounded-full font-bold text-sm transition-all border ${filterFood ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                  {/* Чекбокс спрятан с помощью класса hidden */}
+                  <input type="checkbox" checked={filterFood} onChange={(e) => setFilterFood(e.target.checked)} className="hidden" />
+                  <span>☕ Food</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {filteredPopularSpots.length > 0 ? (
+                filteredPopularSpots.slice(0, 6).map(spot => (
+                  <VenueCard key={spot.id} spot={spot} />
+                ))
+              ) : (
+                <p className="text-gray-500 text-xl col-span-3 text-center py-10">No spots match your filters. Try adjusting them!</p>
+              )}
+            </div>
+          </main>
+
+          <section className="max-w-7xl mx-auto px-8 py-20 bg-[#F9F7F2] rounded-[3rem] mb-20">
+            <h2 className="font-serif text-4xl font-bold text-gray-900 mb-10 text-left">Explore by District</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {districtsData.map(d => (
+                <div key={d.id} onClick={() => handleDistrictClick(d)} className="relative h-64 rounded-[2.5rem] overflow-hidden group cursor-pointer shadow-md transition-transform active:scale-95">
+                  <img src={d.img} className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
+                    <h3 className="text-3xl font-serif font-bold">{d.name}</h3>
+                    <p className="text-sm opacity-90 tracking-widest uppercase mt-2">Explore {d.name}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </>
+      ) : (
+        <main className="max-w-7xl mx-auto px-8 pt-32 pb-20 min-h-screen">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+            <h2 className="font-serif text-5xl font-bold text-gray-900 italic text-left">Spots in {selectedDistrict}</h2>
+            
+            <div className="flex gap-3">
+              <label className={`flex items-center gap-2 cursor-pointer px-5 py-2.5 rounded-full font-bold text-sm transition-all border ${filterOutlets ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                <input type="checkbox" checked={filterOutlets} onChange={(e) => setFilterOutlets(e.target.checked)} className="hidden" />
+                <span>🔌 Outlets</span>
+              </label>
+              
+              <label className={`flex items-center gap-2 cursor-pointer px-5 py-2.5 rounded-full font-bold text-sm transition-all border ${filterFood ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                <input type="checkbox" checked={filterFood} onChange={(e) => setFilterFood(e.target.checked)} className="hidden" />
+                <span>☕ Food</span>
+              </label>
             </div>
           </div>
-        </header>
 
-        <main className="max-w-7xl mx-auto px-8 py-20">
-          <h2 className="font-serif text-4xl font-bold text-gray-900 mb-2 italic text-left">Popular Study Spots</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-10">
-            {spots.filter(s => s.name.toLowerCase().includes(search.toLowerCase())).slice(0, 6).map(spot => (
-              <VenueCard key={spot.id} spot={spot} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="text-center py-20 italic">Finding the best focus zones...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {filteredDistrictSpots.length > 0 ? (
+                 filteredDistrictSpots.map(spot => <VenueCard key={spot.id} spot={spot} />)
+              ) : (
+                 <p className="text-gray-500 text-xl col-span-3 text-center py-10">No spots found matching your criteria in this district.</p>
+              )}
+            </div>
+          )}
         </main>
-
-        <section className="max-w-7xl mx-auto px-8 py-20 bg-[#F9F7F2] rounded-[3rem] mb-20">
-          <h2 className="font-serif text-4xl font-bold text-gray-900 mb-10 text-left">Explore by District</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {districtsData.map(d => (
-              <div key={d.id} onClick={() => handleDistrictClick(d)} className="relative h-64 rounded-[2.5rem] overflow-hidden group cursor-pointer shadow-md transition-transform active:scale-95">
-                <img src={d.img} className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
-                <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-                  <h3 className="text-3xl font-serif font-bold">{d.name}</h3>
-                  <p className="text-sm opacity-90 tracking-widest uppercase mt-2">Explore {d.name}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </>
-    ) : (
-      <main className="max-w-7xl mx-auto px-8 pt-32 pb-20 min-h-screen">
-        <h2 className="font-serif text-5xl font-bold text-gray-900 mb-10 italic text-left">Spots in {selectedDistrict}</h2>
-        {isLoading ? (
-          <div className="text-center py-20 italic">Finding the best focus zones...</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {districtVenues.length > 0 ? (
-               districtVenues.map(spot => <VenueCard key={spot.id} spot={spot} />)
-            ) : (
-               <p className="text-gray-500 text-xl">There is no added places yet.</p>
-            )}
-          </div>
-        )}
-      </main>
-    )}
-  </>
-);
+      )}
+    </>
+  );
+};
 
 export default function App() {
   const [spots, setSpots] = useState([]);
@@ -152,8 +207,10 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const [filterOutlets, setFilterOutlets] = useState(false);
+  const [filterFood, setFilterFood] = useState(false);
+
   useEffect(() => {
-    // Проверяем, авторизован ли пользователь при загрузке
     const token = localStorage.getItem('app_token');
     if (token) {
       setIsLoggedIn(true);
@@ -180,6 +237,7 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('app_token');
     setIsLoggedIn(false);
+    window.location.reload();
   };
 
   return (
@@ -197,10 +255,17 @@ export default function App() {
               isLoading={isLoading}
               isLoggedIn={isLoggedIn}
               handleLogout={handleLogout}
+              filterOutlets={filterOutlets}
+              setFilterOutlets={setFilterOutlets}
+              filterFood={filterFood}
+              setFilterFood={setFilterFood}
             />
           } />
           <Route path="/venue/:id" element={<VenueDetails />} /> 
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/suggest" element={<SuggestSpot />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
 
         <footer className="py-20 flex flex-col items-center justify-center border-t border-gray-100 bg-white mt-auto">
