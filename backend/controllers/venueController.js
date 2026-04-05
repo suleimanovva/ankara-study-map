@@ -94,7 +94,7 @@ const suggestVenue = async (req, res) => {
         wifi_rating,
         quiet_rating,
         is_approved,
-        submitted_by
+        suggested_by
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE, $8)
       RETURNING id, name, is_approved;
