@@ -57,11 +57,12 @@ const HomePage = ({
   filterOutlets, setFilterOutlets, filterFood, setFilterFood 
 }) => {
 
+  // Изменили фильтрацию: теперь React проверяет только розетки и еду, 
+  // а поиск по тексту делает бэкенд Роа!
   const filteredPopularSpots = spots.filter(spot => {
-    const matchSearch = spot.name.toLowerCase().includes(search.toLowerCase());
     const matchOutlets = filterOutlets ? spot.outlet_availability === true : true;
     const matchFood = filterFood ? spot.has_food === true : true;
-    return matchSearch && matchOutlets && matchFood;
+    return matchOutlets && matchFood;
   });
 
   const filteredDistrictSpots = districtVenues.filter(spot => {
@@ -125,13 +126,11 @@ const HomePage = ({
               
               <div className="flex gap-3">
                 <label className={`flex items-center gap-2 cursor-pointer px-5 py-2.5 rounded-full font-bold text-sm transition-all border ${filterOutlets ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}>
-                  {/* Чекбокс спрятан с помощью класса hidden */}
                   <input type="checkbox" checked={filterOutlets} onChange={(e) => setFilterOutlets(e.target.checked)} className="hidden" />
                   <span>🔌 Outlets</span>
                 </label>
                 
                 <label className={`flex items-center gap-2 cursor-pointer px-5 py-2.5 rounded-full font-bold text-sm transition-all border ${filterFood ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}>
-                  {/* Чекбокс спрятан с помощью класса hidden */}
                   <input type="checkbox" checked={filterFood} onChange={(e) => setFilterFood(e.target.checked)} className="hidden" />
                   <span>☕ Food</span>
                 </label>
@@ -210,19 +209,42 @@ export default function App() {
   const [filterOutlets, setFilterOutlets] = useState(false);
   const [filterFood, setFilterFood] = useState(false);
 
+  // 1. useEffect только для проверки логина при загрузке
   useEffect(() => {
     const token = localStorage.getItem('app_token');
     if (token) {
       setIsLoggedIn(true);
     }
-
-    fetch('http://localhost:5000/api/venues') 
-      .then(res => res.json())
-      .then(data => {
-        setSpots(data);
-      })
-      .catch(err => console.error("Ошибка загрузки:", err));
   }, []);
+
+  // 2. 🔥 НОВЫЙ useEffect ДЛЯ УМНОГО ПОИСКА (Debounce) 🔥
+  useEffect(() => {
+    const fetchSpots = async () => {
+      try {
+        // Если поиск пустой - грузим все кафе, если нет - используем маршрут Роа
+        const url = search.trim() === '' 
+          ? 'http://localhost:5000/api/venues' 
+          : `http://localhost:5000/api/venues/search?q=${search}`;
+
+        const res = await fetch(url);
+        
+        if (res.ok) {
+          const data = await res.json();
+          setSpots(data);
+        }
+      } catch (err) {
+        console.error("Ошибка загрузки кафе:", err);
+      }
+    };
+
+    // Ждем 500мс после того, как пользователь закончил печатать
+    const delayDebounceFn = setTimeout(() => {
+      fetchSpots();
+    }, 500);
+
+    // Очищаем таймер, если пользователь снова начал печатать
+    return () => clearTimeout(delayDebounceFn);
+  }, [search]); 
 
   const handleDistrictClick = (district) => {
     setIsLoading(true);

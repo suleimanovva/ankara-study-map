@@ -4,11 +4,12 @@ import { Link } from 'react-router-dom';
 export default function ReviewSection({ venueId, reviews, isLoggedIn, currentUserId }) {
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(5); 
+  // 🔥 НОВОЕ СОСТОЯНИЕ: Для красивого эффекта наведения (hover) 🔥
+  const [hoverRating, setHoverRating] = useState(0); 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🔥 НОВАЯ ФУНКЦИЯ: УДАЛЕНИЕ ОТЗЫВА 🔥
+  // УДАЛЕНИЕ ОТЗЫВА
   const handleDeleteReview = async (reviewId) => {
-    // Спрашиваем подтверждение перед удалением (чтобы случайно не удалить)
     const confirmDelete = window.confirm("Are you sure you want to delete this review?");
     if (!confirmDelete) return;
 
@@ -24,7 +25,7 @@ export default function ReviewSection({ venueId, reviews, isLoggedIn, currentUse
 
       if (response.ok) {
         alert('Review deleted successfully!');
-        window.location.reload(); // Перезагружаем страницу, чтобы отзыв исчез
+        window.location.reload(); 
       } else {
         const errorData = await response.json();
         alert(`Failed to delete review: ${errorData.error || 'Unauthorized'}`);
@@ -78,7 +79,6 @@ export default function ReviewSection({ venueId, reviews, isLoggedIn, currentUse
         <div className="space-y-4 mb-8">
           {reviews && reviews.length > 0 ? (
             reviews.map(review => (
-              // Добавили relative, чтобы абсолютно позиционировать кнопку удаления
               <div key={review.id} className="p-6 bg-[#FCFBF7] rounded-3xl border border-gray-100 relative">
                 <div className="flex justify-between items-center mb-3">
                   <span className="font-bold text-gray-900">{review.username}</span>
@@ -88,7 +88,7 @@ export default function ReviewSection({ venueId, reviews, isLoggedIn, currentUse
                 </div>
                 <p className="text-gray-700 leading-relaxed mb-4">{review.comment}</p>
 
-                {/* 🔥 КНОПКА УДАЛЕНИЯ (Показываем только владельцу отзыва) 🔥 */}
+                {/* КНОПКА УДАЛЕНИЯ (Показываем только владельцу отзыва) */}
                 {currentUserId && currentUserId === review.user_id && (
                   <button 
                     onClick={() => handleDeleteReview(review.id)}
@@ -125,12 +125,18 @@ export default function ReviewSection({ venueId, reviews, isLoggedIn, currentUse
               <div className={`mb-4 flex items-center gap-2 ${!isLoggedIn && 'opacity-50'}`}>
                 <span className="font-bold text-gray-700">Rating:</span>
                 <div className="flex gap-1">
+                  {/* 🔥 ИНТЕРАКТИВНЫЕ ЗВЕЗДЫ 🔥 */}
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button 
+                      type="button"
                       key={star} 
                       disabled={!isLoggedIn}
                       onClick={() => setRating(star)}
-                      className={`text-2xl transition-colors ${rating >= star ? 'text-orange-400' : 'text-gray-300 hover:text-orange-200'}`}
+                      onMouseEnter={() => isLoggedIn && setHoverRating(star)}
+                      onMouseLeave={() => isLoggedIn && setHoverRating(0)}
+                      className={`text-3xl transition-colors cursor-pointer ${
+                        star <= (hoverRating || rating) ? 'text-orange-400' : 'text-gray-200'
+                      }`}
                     >
                       ★
                     </button>
