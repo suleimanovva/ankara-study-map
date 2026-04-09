@@ -22,7 +22,7 @@ pool.connect()
 
 // Root route
 app.get("/", (req, res) => {
-  res.send("Ankara Study Map Backend Running 🚀");
+  res.send("Ankara Study Map Backend Running");
 });
 
 // ==========================================
