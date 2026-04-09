@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@layer base {
+  /* Импорт шрифтов Playfair (засечки) и Inter (без засечек) */
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap');
+
+  body {
+    @apply font-sans bg-[#FCFBF7] text-[#1A1A1A] m-0 p-0;
+  }
+}
+
+@theme {
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
