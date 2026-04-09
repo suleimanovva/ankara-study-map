@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 export default function ReviewSection({ venueId, reviews, isLoggedIn, currentUserId }) {
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(5); 
-  // 🔥 НОВОЕ СОСТОЯНИЕ: Для красивого эффекта наведения (hover) 🔥
+  //  НОВОЕ СОСТОЯНИЕ: Для красивого эффекта наведения (hover) 
   const [hoverRating, setHoverRating] = useState(0); 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -125,7 +125,7 @@ export default function ReviewSection({ venueId, reviews, isLoggedIn, currentUse
               <div className={`mb-4 flex items-center gap-2 ${!isLoggedIn && 'opacity-50'}`}>
                 <span className="font-bold text-gray-700">Rating:</span>
                 <div className="flex gap-1">
-                  {/* 🔥 ИНТЕРАКТИВНЫЕ ЗВЕЗДЫ 🔥 */}
+                  {/*  ИНТЕРАКТИВНЫЕ ЗВЕЗДЫ  */}
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button 
                       type="button"

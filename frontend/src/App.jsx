@@ -120,7 +120,7 @@ const HomePage = ({
           </header>
 
           <main className="max-w-7xl mx-auto px-8 py-20">
-            {/* 🔥 ПРОФЕССИОНАЛЬНАЯ ПАНЕЛЬ ФИЛЬТРОВ 🔥 */}
+            {/*  ПРОФЕССИОНАЛЬНАЯ ПАНЕЛЬ ФИЛЬТРОВ  */}
             <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
               <h2 className="font-serif text-4xl font-bold text-gray-900 italic text-left">Popular Study Spots</h2>
               
@@ -217,14 +217,14 @@ export default function App() {
     }
   }, []);
 
-  // 2. 🔥 НОВЫЙ useEffect ДЛЯ УМНОГО ПОИСКА (Debounce) 🔥
+  // 2. НОВЫЙ useEffect ДЛЯ УМНОГО ПОИСКА (Debounce) 
   useEffect(() => {
     const fetchSpots = async () => {
       try {
         // Если поиск пустой - грузим все кафе, если нет - используем маршрут Роа
         const url = search.trim() === '' 
           ? 'http://localhost:5000/api/venues' 
-          : `http://localhost:5000/api/venues/search?q=${search}`;
+          : `http://localhost:5000/api/venues/search?name=${search}`;
 
         const res = await fetch(url);
         
