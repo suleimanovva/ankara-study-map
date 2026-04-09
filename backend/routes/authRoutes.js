@@ -3,7 +3,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const pool = require("../config/db");
 const { OAuth2Client } = require("google-auth-library");
-const authenticateToken = require("../middleware/authMiddleware"); // ✅ ADDED
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -19,8 +18,7 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      `INSERT INTO users (username, email, password_hash)
-       VALUES ($1, $2, $3)
+      `INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)
        RETURNING id, username, email`,
       [username, email, hashedPassword]
     );
@@ -46,8 +44,7 @@ router.post("/login", async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT * FROM users
-       WHERE email = $1 AND is_deleted = FALSE`,
+      "SELECT * FROM users WHERE email = $1 AND is_deleted = FALSE",
       [email]
     );
 
@@ -106,8 +103,9 @@ router.post("/google", async (req, res) => {
     const email = payload.email;
     const username = payload.name;
 
+    // Check if user exists
     let result = await pool.query(
-      `SELECT * FROM users WHERE google_id = $1 OR email = $2`,
+      "SELECT * FROM users WHERE google_id = $1 OR email = $2",
       [googleId, email]
     );
 
@@ -115,9 +113,9 @@ router.post("/google", async (req, res) => {
 
     if (result.rows.length === 0) {
 
+      // Create new user
       const newUser = await pool.query(
-        `INSERT INTO users (username, email, google_id)
-         VALUES ($1, $2, $3)
+        `INSERT INTO users (username, email, google_id) VALUES ($1, $2, $3)
          RETURNING id, username, email, role`,
         [username, email, googleId]
       );
@@ -128,9 +126,10 @@ router.post("/google", async (req, res) => {
 
       user = result.rows[0];
 
+      // If user exists but google_id not saved yet
       if (!user.google_id) {
         await pool.query(
-          `UPDATE users SET google_id = $1 WHERE id = $2`,
+          "UPDATE users SET google_id = $1 WHERE id = $2",
           [googleId, user.id]
         );
       }
@@ -153,53 +152,5 @@ router.post("/google", async (req, res) => {
   }
 
 });
-
-
-// ==============================
-// 🔥 ADMIN: GET ALL USERS
-// ==============================
-router.get("/users", authenticateToken, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Admin only" });
-    }
-
-    const result = await pool.query(
-      "SELECT id, email, role FROM users WHERE is_deleted = false"
-    );
-
-    res.json(result.rows);
-
-  } catch (err) {
-    console.error("Get users error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-
-// ==============================
-// 🔥 ADMIN: MAKE USER ADMIN
-// ==============================
-router.put("/make-admin/:id", authenticateToken, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Admin only" });
-    }
-
-    const userId = req.params.id;
-
-    await pool.query(
-      "UPDATE users SET role = 'admin' WHERE id = $1",
-      [userId]
-    );
-
-    res.json({ message: "User promoted to admin 👑" });
-
-  } catch (err) {
-    console.error("Make admin error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
 
 module.exports = router;
