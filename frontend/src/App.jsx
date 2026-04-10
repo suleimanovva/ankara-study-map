@@ -223,8 +223,8 @@ export default function App() {
       try {
         // Если поиск пустой - грузим все кафе, если нет - используем маршрут Роа
         const url = search.trim() === '' 
-          ? 'http://localhost:5000/api/venues' 
-          : `http://localhost:5000/api/venues/search?name=${search}`;
+          ? 'https://ankara-study-map.onrender.com/api/venues' 
+          : `https://ankara-study-map.onrender.com/api/venues/search?name=${search}`;
 
         const res = await fetch(url);
         

@@ -18,7 +18,7 @@ export default function AdminPage() {
       return;
     }
 
-    fetch('http://localhost:5000/api/venues/admin/pending', { // ✅ FIXED
+    fetch('https://ankara-study-map.onrender.com/api/venues/admin/pending', { // ✅ FIXED
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -46,7 +46,7 @@ export default function AdminPage() {
       const token = localStorage.getItem('token'); // ✅ FIXED
 
       const res = await fetch(
-        `http://localhost:5000/api/venues/admin/${id}/approve`, // ✅ FIXED
+        `https://ankara-study-map.onrender.com/api/venues/admin/${id}/approve`, // ✅ FIXED
         {
           method: 'PUT',
           headers: {
@@ -77,7 +77,7 @@ export default function AdminPage() {
       const token = localStorage.getItem('token'); // ✅ FIXED
 
       const res = await fetch(
-        `http://localhost:5000/api/venues/admin/${id}/reject`, // ✅ FIXED
+        `https://ankara-study-map.onrender.com/api/venues/admin/${id}/reject`, // ✅ FIXED
         {
           method: 'DELETE',
           headers: {

@@ -40,7 +40,7 @@ export default function VenueDetails() {
       }
     }
 
-    fetch(`http://localhost:5000/api/venues/${id}`)
+    fetch(`https://ankara-study-map.onrender.com/api/venues/${id}`)
       .then(res => res.json())
       .then(data => {
         const currentVenue = Array.isArray(data) ? data[0] : data;
@@ -64,7 +64,7 @@ export default function VenueDetails() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/venues/admin/${id}/delete`,
+        `https://ankara-study-map.onrender.com/api/venues/admin/${id}/delete`,
         {
           method: "DELETE",
           headers: {

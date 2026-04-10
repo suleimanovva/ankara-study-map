@@ -13,7 +13,7 @@ export default function VenueDetails() {
   const [isSubmitting, setIsSubmitting] = useState(false); // Состояние загрузки во время отправки
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/venues/${id}`)
+    fetch(`http://ankara-study-map.onrender.com/api/venues/${id}`)
       .then(res => res.json())
       .then(data => {
         const currentVenue = Array.isArray(data) ? data[0] : data;
@@ -42,7 +42,7 @@ export default function VenueDetails() {
       // Бэкенд просит токен авторизации (Bearer Token)
       const token = localStorage.getItem('temp_token') || 'dummy_token';
 
-      const response = await fetch('http://localhost:5000/api/reviews', {
+      const response = await fetch('https://ankara-study-map.onrender.com/api/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
