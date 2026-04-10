@@ -9,7 +9,7 @@ export default function VenueDetails() {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false); // 🔥 NEW
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // ==============================
   // DECODE TOKEN
@@ -27,7 +27,7 @@ export default function VenueDetails() {
   // LOAD DATA + AUTH
   // ==============================
   useEffect(() => {
-    const savedToken = localStorage.getItem('token'); // ✅ FIXED
+    const savedToken = localStorage.getItem('app_token'); // ✅ FIXED
 
     if (savedToken) {
       const decoded = decodeToken(savedToken);
@@ -57,7 +57,7 @@ export default function VenueDetails() {
   // DELETE SPOT (ADMIN ONLY)
   // ==============================
   const deleteSpot = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("app_token"); // ✅ FIXED
 
     const confirmDelete = window.confirm("Are you sure you want to delete this spot?");
     if (!confirmDelete) return;
@@ -75,7 +75,7 @@ export default function VenueDetails() {
 
       if (res.ok) {
         alert("Spot deleted 🗑️");
-        window.location.href = "/"; // go back
+        window.location.href = "/";
       } else {
         alert("Failed to delete");
       }
@@ -99,7 +99,6 @@ export default function VenueDetails() {
           ← Back to list
         </Link>
 
-        {/* IMAGE */}
         <div className="w-full h-[400px] rounded-[2.5rem] overflow-hidden shadow-lg mb-8 bg-gray-200">
           {venue.image_url ? (
             <img src={venue.image_url} className="w-full h-full object-cover" alt={venue.name} />
@@ -108,13 +107,11 @@ export default function VenueDetails() {
           )}
         </div>
 
-        {/* DETAILS */}
         <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-100 mb-8">
           <h1 className="text-4xl font-serif font-bold text-gray-900 mb-2">
             {venue.name}
           </h1>
 
-          {/* 🔥 DELETE BUTTON (ADMIN ONLY) */}
           {isAdmin && (
             <button
               onClick={deleteSpot}
@@ -141,7 +138,6 @@ export default function VenueDetails() {
           )}
         </div>
 
-        {/* RATINGS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-6 rounded-[2rem] text-center">
             📶 Wi-Fi: {venue.wifi_rating || 0}
@@ -157,7 +153,6 @@ export default function VenueDetails() {
           </div>
         </div>
 
-        {/* REVIEWS */}
         <ReviewSection
           venueId={id}
           reviews={venue.reviews}
