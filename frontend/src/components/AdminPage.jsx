@@ -10,7 +10,7 @@ export default function AdminPage() {
   // LOAD PENDING SPOTS
   // ==============================
   useEffect(() => {
-    const token = localStorage.getItem('token'); // ✅ FIXED
+    const token = localStorage.getItem('app_token'); // ✅ FIXED
 
     if (!token) {
       alert("Access denied. Admin only.");
@@ -43,7 +43,7 @@ export default function AdminPage() {
   // ==============================
   const handleApprove = async (id) => {
     try {
-      const token = localStorage.getItem('token'); // ✅ FIXED
+      const token = localStorage.getItem('app_token'); // ✅ FIXED
 
       const res = await fetch(
         `https://ankara-study-map.onrender.com/api/venues/admin/${id}/approve`, // ✅ FIXED
@@ -74,7 +74,7 @@ export default function AdminPage() {
     if (!confirmReject) return;
 
     try {
-      const token = localStorage.getItem('token'); // ✅ FIXED
+      const token = localStorage.getItem('app_token'); // ✅ FIXED
 
       const res = await fetch(
         `https://ankara-study-map.onrender.com/api/venues/admin/${id}/reject`, // ✅ FIXED

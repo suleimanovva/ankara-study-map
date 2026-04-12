@@ -206,16 +206,47 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
   const [filterOutlets, setFilterOutlets] = useState(false);
   const [filterFood, setFilterFood] = useState(false);
 
   // 1. useEffect только для проверки логина при загрузке
   useEffect(() => {
-    const token = localStorage.getItem('app_token');
-    if (token) {
+  const token = localStorage.getItem('app_token');
+
+  if (!token) {
+    setAuthChecked(true);
+    return;
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const isExpired = payload.exp * 1000 < Date.now();
+
+    if (isExpired) {
+      localStorage.removeItem('app_token');
+      setIsLoggedIn(false);
+      setCurrentUserId(null);
+      setUserRole(null);
+    } else {
       setIsLoggedIn(true);
+      setCurrentUserId(payload.userId);
+      setUserRole(payload.role);
     }
-  }, []);
+
+  } catch (err) {
+    console.error("Token decode error:", err);
+    localStorage.removeItem('app_token');
+    setIsLoggedIn(false);
+    setCurrentUserId(null);
+    setUserRole(null);
+  }
+
+  setAuthChecked(true); 
+}, []);
 
   // 2. НОВЫЙ useEffect ДЛЯ УМНОГО ПОИСКА (Debounce) 
   useEffect(() => {
@@ -259,6 +290,8 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('app_token');
     setIsLoggedIn(false);
+    setCurrentUserId(null);
+    setUserRole(null);
     window.location.reload();
   };
 
@@ -266,28 +299,58 @@ export default function App() {
     <Router>
       <div className="min-h-screen bg-[#FCFBF7] font-sans selection:bg-emerald-100 relative">
         <Routes>
-          <Route path="/" element={
-            <HomePage 
-              spots={spots}
-              search={search} setSearch={setSearch} 
-              handleDistrictClick={handleDistrictClick} 
-              selectedDistrict={selectedDistrict} 
-              setSelectedDistrict={setSelectedDistrict}
-              districtVenues={districtVenues}
-              isLoading={isLoading}
-              isLoggedIn={isLoggedIn}
-              handleLogout={handleLogout}
-              filterOutlets={filterOutlets}
-              setFilterOutlets={setFilterOutlets}
-              filterFood={filterFood}
-              setFilterFood={setFilterFood}
-            />
-          } />
-          <Route path="/venue/:id" element={<VenueDetails />} /> 
+
+          <Route 
+            path="/" 
+            element={
+              <HomePage 
+                spots={spots}
+                search={search} setSearch={setSearch} 
+                handleDistrictClick={handleDistrictClick} 
+                selectedDistrict={selectedDistrict} 
+                setSelectedDistrict={setSelectedDistrict}
+                districtVenues={districtVenues}
+                isLoading={isLoading}
+                isLoggedIn={isLoggedIn}
+                handleLogout={handleLogout}
+                filterOutlets={filterOutlets}
+                setFilterOutlets={setFilterOutlets}
+                filterFood={filterFood}
+                setFilterFood={setFilterFood}
+              />
+            } 
+          />
+
+          {/* ✅ FIXED HERE */}
+          <Route 
+            path="/venue/:id" 
+            element={
+              <VenueDetails 
+                isLoggedIn={isLoggedIn}
+                currentUserId={currentUserId}
+                userRole={userRole}
+              />
+            } 
+          />
+
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/suggest" element={<SuggestSpot />} />
-          <Route path="/admin" element={<AdminPage />} />
+
+          {/* (optional but better later: protect this route) */}
+          <Route 
+  path="/admin" 
+  element={
+    !authChecked ? (
+      <div>Loading...</div>
+    ) : userRole === "admin" ? (
+      <AdminPage />
+    ) : (
+      <LoginPage />
+    )
+  } 
+/>
+
         </Routes>
 
         <footer className="py-20 flex flex-col items-center justify-center border-t border-gray-100 bg-white mt-auto">
@@ -295,7 +358,9 @@ export default function App() {
             <span className="text-emerald-600 text-3xl">📍</span>
             <span className="font-serif text-2xl font-bold text-gray-900 tracking-tight">Ankara Study Map</span>
           </div>
-          <p className="text-gray-500 italic font-light">Helping Ankara students find their focus since 2026.</p>
+          <p className="text-gray-500 italic font-light">
+            Helping Ankara students find their focus since 2026.
+          </p>
         </footer>
       </div>
     </Router>

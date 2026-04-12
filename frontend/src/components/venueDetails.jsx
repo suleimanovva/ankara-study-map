@@ -2,41 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReviewSection from './ReviewSection';
 
-export default function VenueDetails() {
+export default function VenueDetails({ isLoggedIn, currentUserId, userRole }) {
   const { id } = useParams();
   const [venue, setVenue] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const isAdmin = userRole === "admin";
 
   // ==============================
-  // DECODE TOKEN
-  // ==============================
-  const decodeToken = (token) => {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload;
-    } catch (e) {
-      return null;
-    }
-  };
-
-  // ==============================
-  // LOAD DATA + AUTH
+  // LOAD DATA + ADMIN CHECK
   // ==============================
   useEffect(() => {
-    const savedToken = localStorage.getItem('app_token'); // ✅ FIXED
+    const token = localStorage.getItem('app_token');
 
-    if (savedToken) {
-      const decoded = decodeToken(savedToken);
-
-      setIsLoggedIn(true);
-      setCurrentUserId(decoded.userId);
-
-      if (decoded.role === "admin") {
-        setIsAdmin(true);
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        if (decoded.role === "admin") {
+          setIsAdmin(true);
+        }
+      } catch (e) {
+        console.error("Token decode error");
       }
     }
 
@@ -53,11 +39,8 @@ export default function VenueDetails() {
       });
   }, [id]);
 
-  // ==============================
-  // DELETE SPOT (ADMIN ONLY)
-  // ==============================
   const deleteSpot = async () => {
-    const token = localStorage.getItem("app_token"); // ✅ FIXED
+    const token = localStorage.getItem("app_token");
 
     const confirmDelete = window.confirm("Are you sure you want to delete this spot?");
     if (!confirmDelete) return;
@@ -85,9 +68,6 @@ export default function VenueDetails() {
     }
   };
 
-  // ==============================
-  // LOADING STATES
-  // ==============================
   if (loading) return <div className="pt-40 text-center text-2xl font-serif text-gray-500">Loading details...</div>;
   if (!venue) return <div className="pt-40 text-center text-2xl font-serif text-red-500">Venue not found :(</div>;
 

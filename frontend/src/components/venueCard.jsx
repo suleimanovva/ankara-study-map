@@ -61,7 +61,7 @@ export default function VenueDetails() {
         window.location.reload(); // Перезагружаем страницу, чтобы увидеть новый отзыв!
       } else {
         const errorData = await response.json();
-        alert(`Failed to add review: ${errorData.error || 'Unauthorized'}`);
+        alert(`Failed to add review: ${errorData.message || 'Unauthorized'}`);
       }
     } catch (err) {
       console.error('Submit error:', err);
