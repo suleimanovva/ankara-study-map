@@ -13,7 +13,7 @@ export default function SignUpPage() {
     e.preventDefault();
     
     try {
-      const res = await fetch('https://ankara-study-map.onrender.com/api/auth/register', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -48,7 +48,7 @@ export default function SignUpPage() {
   // Обработчик для Google регистрации/входа
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await fetch('https://ankara-study-map.onrender.com/api/auth/google', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: credentialResponse.credential })

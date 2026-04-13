@@ -15,7 +15,7 @@ export default function ReviewSection({ venueId, reviews, isLoggedIn, currentUse
     try {
       const token = localStorage.getItem('app_token');
 
-      const response = await fetch(`https://ankara-study-map.onrender.com/api/reviews/${reviewId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews/${reviewId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}` 
@@ -53,7 +53,7 @@ export default function ReviewSection({ venueId, reviews, isLoggedIn, currentUse
     try {
       const token = localStorage.getItem('app_token');
 
-      const response = await fetch('https://ankara-study-map.onrender.com/api/reviews', {
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
