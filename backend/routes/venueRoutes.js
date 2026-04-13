@@ -46,7 +46,7 @@ router.post(
 router.get(
   "/admin/pending",
   authenticateToken,
-  requireAdmin, // 🔥 THIS IS THE FIX
+  requireAdmin, 
   venueController.getPendingVenues
 );
 
@@ -59,7 +59,7 @@ router.get(
 router.put(
   "/admin/:id/approve",
   authenticateToken,
-  requireAdmin, // 🔥 THIS IS THE FIX
+  requireAdmin, 
   venueController.approveVenue
 );
 
@@ -72,7 +72,7 @@ router.put(
 router.delete(
   "/admin/:id/reject",
   authenticateToken,
-  requireAdmin, // 🔥 THIS IS THE FIX
+  requireAdmin, 
   venueController.rejectVenue
 );
 
