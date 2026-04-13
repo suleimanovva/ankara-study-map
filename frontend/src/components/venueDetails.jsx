@@ -13,20 +13,7 @@ export default function VenueDetails({ isLoggedIn, currentUserId, userRole }) {
   // LOAD DATA + ADMIN CHECK
   // ==============================
   useEffect(() => {
-    const token = localStorage.getItem('app_token');
-
-    if (token) {
-      try {
-        const decoded = JSON.parse(atob(token.split('.')[1]));
-        if (decoded.role === "admin") {
-          setIsAdmin(true);
-        }
-      } catch (e) {
-        console.error("Token decode error");
-      }
-    }
-
-    fetch(`https://ankara-study-map.onrender.com/api/venues/${id}`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/venues/${id}`)
       .then(res => res.json())
       .then(data => {
         const currentVenue = Array.isArray(data) ? data[0] : data;
@@ -47,7 +34,7 @@ export default function VenueDetails({ isLoggedIn, currentUserId, userRole }) {
 
     try {
       const res = await fetch(
-        `https://ankara-study-map.onrender.com/api/venues/admin/${id}/delete`,
+        `${import.meta.env.VITE_API_URL}/api/venues/admin/${id}/delete`,
         {
           method: "DELETE",
           headers: {

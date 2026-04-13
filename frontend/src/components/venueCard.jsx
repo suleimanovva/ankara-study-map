@@ -42,7 +42,7 @@ export default function VenueDetails() {
       // Бэкенд просит токен авторизации (Bearer Token)
       const token = localStorage.getItem('temp_token') || 'dummy_token';
 
-      const response = await fetch('https://ankara-study-map.onrender.com/api/reviews', {
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

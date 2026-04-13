@@ -28,7 +28,7 @@ export default function SuggestSpot() {
     try {
       const token = localStorage.getItem('app_token');
       const res = await fetch('https://ankara-study-map.onrender.com/api/venues', {
-        method: 'POST',
+  method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`

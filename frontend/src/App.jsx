@@ -208,7 +208,6 @@ export default function App() {
 
   const [currentUserId, setCurrentUserId] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
 
   const [filterOutlets, setFilterOutlets] = useState(false);
   const [filterFood, setFilterFood] = useState(false);
@@ -245,7 +244,6 @@ export default function App() {
     setUserRole(null);
   }
 
-  setAuthChecked(true); 
 }, []);
 
   // 2. НОВЫЙ useEffect ДЛЯ УМНОГО ПОИСКА (Debounce) 
@@ -253,9 +251,9 @@ export default function App() {
     const fetchSpots = async () => {
       try {
         // Если поиск пустой - грузим все кафе, если нет - используем маршрут Роа
-        const url = search.trim() === '' 
-          ? 'https://ankara-study-map.onrender.com/api/venues' 
-          : `https://ankara-study-map.onrender.com/api/venues/search?name=${search}`;
+        const url = search.trim() === ''
+          ? `${import.meta.env.VITE_API_URL}/api/venues`
+          : `${import.meta.env.VITE_API_URL}/api/venues/search?name=${search}`;
 
         const res = await fetch(url);
         
@@ -337,19 +335,7 @@ export default function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/suggest" element={<SuggestSpot />} />
 
-          {/* (optional but better later: protect this route) */}
-          <Route 
-  path="/admin" 
-  element={
-    !authChecked ? (
-      <div>Loading...</div>
-    ) : userRole === "admin" ? (
-      <AdminPage />
-    ) : (
-      <LoginPage />
-    )
-  } 
-/>
+          <Route path="/admin" element={<AdminPage />} />
 
         </Routes>
 

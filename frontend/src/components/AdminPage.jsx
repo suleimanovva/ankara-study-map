@@ -10,15 +10,28 @@ export default function AdminPage() {
   // LOAD PENDING SPOTS
   // ==============================
   useEffect(() => {
-    const token = localStorage.getItem('app_token'); // ✅ FIXED
+    const token = localStorage.getItem('app_token');
 
     if (!token) {
-      alert("Access denied. Admin only.");
+      alert("Access denied. Please log in first.");
       navigate('/');
       return;
     }
 
-    fetch('https://ankara-study-map.onrender.com/api/venues/admin/pending', { // ✅ FIXED
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const isExpired = payload.exp * 1000 < Date.now();
+      if (isExpired || payload.role !== 'admin') {
+        alert("Access denied. Admin rights required!");
+        navigate('/');
+        return;
+      }
+    } catch (e) {
+      navigate('/');
+      return;
+    }
+
+    fetch('https://ankara-study-map.onrender.com/api/venues/admin/pending', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -43,10 +56,10 @@ export default function AdminPage() {
   // ==============================
   const handleApprove = async (id) => {
     try {
-      const token = localStorage.getItem('app_token'); // ✅ FIXED
+      const token = localStorage.getItem('app_token');
 
       const res = await fetch(
-        `https://ankara-study-map.onrender.com/api/venues/admin/${id}/approve`, // ✅ FIXED
+        `https://ankara-study-map.onrender.com/api/venues/admin/${id}/approve`,
         {
           method: 'PUT',
           headers: {
@@ -74,10 +87,10 @@ export default function AdminPage() {
     if (!confirmReject) return;
 
     try {
-      const token = localStorage.getItem('app_token'); // ✅ FIXED
+      const token = localStorage.getItem('app_token');
 
       const res = await fetch(
-        `https://ankara-study-map.onrender.com/api/venues/admin/${id}/reject`, // ✅ FIXED
+        `https://ankara-study-map.onrender.com/api/venues/admin/${id}/reject`,
         {
           method: 'DELETE',
           headers: {

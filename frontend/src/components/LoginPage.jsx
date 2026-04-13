@@ -12,7 +12,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      const res = await fetch('https://ankara-study-map.onrender.com/api/auth/login', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -41,7 +41,7 @@ export default function LoginPage() {
   // Обработчик для Google входа (перенесли его сюда из отзывов)
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await fetch('https://ankara-study-map.onrender.com/api/auth/google', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: credentialResponse.credential })
